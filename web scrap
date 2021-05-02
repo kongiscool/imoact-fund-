@@ -1,0 +1,43 @@
+install.packages(c("tidyverse", "rvest","stringi"))
+
+library(tidyverse)
+library(rvest)
+library(stringi)
+
+data <- read_html("https://www.impactspace.com/investments")
+
+#get table header
+heading <- data %>%
+  html_nodes("thead th") %>%
+  html_text() %>%
+  as.vector()
+
+# get body data
+body <- data %>% 
+  html_nodes("td") %>%
+  html_text() %>%
+  str_replace_all("\\r","") %>%
+  str_replace_all("\\t","") %>%
+  str_replace_all("\\n","") %>%
+  str_trim()
+
+#remove vad no. 
+body_clean_one <-gsub("^9[0-9]+[^0-9]","",body) %>% 
+  str_trim()
+  
+
+body_clean_two <-gsub("^201[0-9]+[^0-9]","",body_clean_one) %>%
+  str_trim()
+
+
+
+#convert into matrix  >> arrange into col of 7
+adjust_to_matrix <- matrix(body_clean_two, ncol = 7,byrow = TRUE)
+                          
+View(adjust_to_matrix) %>% head(100)
+
+#convert to data frame
+df <- data.frame(adjust_to_matrix)
+
+#add  heading as colname
+colnames(df) <- heading
